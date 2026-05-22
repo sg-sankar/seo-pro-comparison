@@ -1,14 +1,15 @@
-// Fetches Core Web Vitals from Google PageSpeed Insights.
-// Called client-side (browser) — PSI supports CORS, no API key needed
-// (rate-limited per IP; fine for personal use).
-
 import type { SeoData } from "./types";
 
 type Cwv = NonNullable<SeoData["cwv"]>;
 
+function sleep(ms: number): Promise<void> {
+  return new Promise((r) => setTimeout(r, ms));
+}
+
 export async function fetchCwv(
   url: string,
-  strategy: "mobile" | "desktop" = "mobile"
+  strategy: "mobile" | "desktop" = "mobile",
+  attempt = 0
 ): Promise<Cwv> {
   try {
     const api = `https://www.googleapis.com/pagespeedonline/v5/runPagespeed?url=${encodeURIComponent(
@@ -20,6 +21,12 @@ export async function fetchCwv(
     const res = await fetch(api, { signal: ctrl.signal });
     clearTimeout(t);
 
+    // Rate limited (no API key) -> wait and retry up to 3 times
+    if (res.status === 429 && attempt < 3) {
+      await sleep(4000 * (attempt + 1));
+      return fetchCwv(url, strategy, attempt + 1);
+    }
+
     if (!res.ok) {
       return { source: `PSI error (${res.status})` };
     }
@@ -29,11 +36,10 @@ export async function fetchCwv(
     const audits = lr?.audits || {};
     const perfScore = lr?.categories?.performance?.score;
 
-    // Prefer field data (real users) from CrUX if present
-    const field = json.loadingExperience?.metrics || {};
-    const fieldLcp = field.LARGEST_CONTENTFUL_PAINT_MS?.percentile;
-    const fieldCls = field.CUMULATIVE_LAYOUT_SHIFT_SCORE?.percentile;
-    const fieldInp = field.INTERACTION_TO_NEXT_PAINT?.percentile;
+    const fieldMetrics = json.loadingExperience?.metrics || {};
+    const fieldLcp = fieldMetrics.LARGEST_CONTENTFUL_PAINT_MS?.percentile;
+    const fieldCls = fieldMetrics.CUMULATIVE_LAYOUT_SHIFT_SCORE?.percentile;
+    const fieldInp = fieldMetrics.INTERACTION_TO_NEXT_PAINT?.percentile;
 
     const num = (id: string) =>
       typeof audits[id]?.numericValue === "number"
@@ -58,8 +64,10 @@ export async function fetchCwv(
       source: fieldLcp !== undefined ? "PSI (field + lab)" : "PSI (lab)",
     };
   } catch (e: any) {
-    return {
-      source: e.name === "AbortError" ? "PSI (timeout)" : "PSI (failed)",
-    };
+    if (e.name !== "AbortError" && attempt < 2) {
+      await sleep(3000);
+      return fetchCwv(url, strategy, attempt + 1);
+    }
+    return { source: e.name === "AbortError" ? "PSI (timeout)" : "PSI (failed)" };
   }
 }

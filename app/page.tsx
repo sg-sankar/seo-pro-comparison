@@ -195,7 +195,7 @@ export default function Home() {
             SEO Pro Comparison
           </h1>
           <p className="text-gray-600 mt-1">
-            Compare SEO factors across 2–5 URLs side by side
+            Compare SEO factors across 2 to 5 URLs side by side
           </p>
         </header>
 
@@ -216,21 +216,21 @@ export default function Home() {
               <span className="text-gray-600">CWV:</span>
               <button
                 onClick={() => setStrategy("mobile")}
-                className={`px-3 py-1 rounded ${
+                className={
                   strategy === "mobile"
-                    ? "bg-blue-100 text-blue-700 font-medium"
-                    : "bg-gray-100 text-gray-600"
-                }`}
+                    ? "px-3 py-1 rounded bg-blue-100 text-blue-700 font-medium"
+                    : "px-3 py-1 rounded bg-gray-100 text-gray-600"
+                }
               >
                 Mobile
               </button>
               <button
                 onClick={() => setStrategy("desktop")}
-                className={`px-3 py-1 rounded ${
+                className={
                   strategy === "desktop"
-                    ? "bg-blue-100 text-blue-700 font-medium"
-                    : "bg-gray-100 text-gray-600"
-                }`}
+                    ? "px-3 py-1 rounded bg-blue-100 text-blue-700 font-medium"
+                    : "px-3 py-1 rounded bg-gray-100 text-gray-600"
+                }
               >
                 Desktop
               </button>
@@ -246,7 +246,7 @@ export default function Home() {
             )}
           </div>
           <p className="text-xs text-gray-500 mt-2">
-            Note: Core Web Vitals (PageSpeed) can take 20-40s per URL and load
+            Note: Core Web Vitals (PageSpeed) can take 20 to 40s per URL and load
             after the rest of the data. JS-rendered SPAs may return incomplete
             results.
           </p>
@@ -269,7 +269,7 @@ export default function Home() {
             traffic and conversion.
           </div>
           <div className="flex gap-4 mt-3">
-            
+            <a
               href="https://www.linkedin.com/in/sankar-gurumurthy-a1044a136/"
               target="_blank"
               rel="noopener noreferrer"
@@ -277,7 +277,7 @@ export default function Home() {
             >
               LinkedIn
             </a>
-            
+            <a
               href="https://github.com/sg-sankar"
               target="_blank"
               rel="noopener noreferrer"

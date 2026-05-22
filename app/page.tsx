@@ -34,7 +34,6 @@ export default function Home() {
     setLoading(valid.map(() => true));
 
     valid.forEach(async (url, i) => {
-      // 1. Main fast parse via our API
       try {
         const res = await fetch("/api/analyze", {
           method: "POST",
@@ -61,7 +60,6 @@ export default function Home() {
         });
       }
 
-      // 2. First published — schema/meta first, Wayback fallback (client-side)
       let publishedDate: string | undefined;
       await new Promise<void>((resolve) => {
         setResults((prev) => {
@@ -84,7 +82,6 @@ export default function Home() {
         });
       }
 
-      // 3. Core Web Vitals via PSI (client-side, slow)
       const cwv = await fetchCwv(url, strategy);
       updateResult(i, { cwv });
     });
@@ -179,9 +176,7 @@ export default function Home() {
 
     const csv = rows
       .map((row) =>
-        row
-          .map((cell) => `"${String(cell).replace(/"/g, '""')}"`)
-          .join(",")
+        row.map((cell) => `"${String(cell).replace(/"/g, '""')}"`).join(",")
       )
       .join("\n");
 
@@ -246,12 +241,12 @@ export default function Home() {
                 onClick={exportCsv}
                 className="ml-auto px-4 py-2 border border-gray-300 rounded-md text-sm hover:bg-gray-50 transition"
               >
-                ↓ Export CSV
+                Export CSV
               </button>
             )}
           </div>
           <p className="text-xs text-gray-500 mt-2">
-            Note: Core Web Vitals (PageSpeed) can take 20–40s per URL and load
+            Note: Core Web Vitals (PageSpeed) can take 20-40s per URL and load
             after the rest of the data. JS-rendered SPAs may return incomplete
             results.
           </p>
@@ -266,12 +261,12 @@ export default function Home() {
         <div className="max-w-[1600px] mx-auto px-4 py-6 text-sm text-gray-600">
           <div className="font-semibold text-gray-800">Sankar Gurumurthy</div>
           <div className="text-gray-500">
-            AI SEO / PPC / Digital Marketing · AI / ML / Data Science
+            AI SEO / PPC / Digital Marketing - AI / ML / Data Science
           </div>
           <div className="text-gray-500 mt-1 max-w-2xl">
             Data-driven AI SEO / PPC specialist. Interested in Python, web
             analytics, data science, NLP, ML, LLMs, and AI agents to boost
-            traffic & conversion.
+            traffic and conversion.
           </div>
           <div className="flex gap-4 mt-3">
             
@@ -292,7 +287,7 @@ export default function Home() {
             </a>
           </div>
           <div className="text-xs text-gray-400 mt-3">
-            SEO Pro Comparison v1 · built by Sankar Gurumurthy
+            SEO Pro Comparison v1 - built by Sankar Gurumurthy
           </div>
         </div>
       </footer>

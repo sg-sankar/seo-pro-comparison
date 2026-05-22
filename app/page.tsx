@@ -2,28 +2,60 @@
 
 import { useState } from "react";
 import UrlInput from "@/components/UrlInput";
+import ComparisonTable from "@/components/ComparisonTable";
+import type { SeoData } from "@/lib/types";
 
 export default function Home() {
   const [urls, setUrls] = useState<string[]>(["", ""]);
-  const [analyzing, setAnalyzing] = useState(false);
+  const [results, setResults] = useState<(SeoData | null)[]>([]);
+  const [loading, setLoading] = useState<boolean[]>([]);
+  const [running, setRunning] = useState(false);
 
-  const handleAnalyze = () => {
-    const valid = urls.filter((u) => u.trim().length > 0);
+  const handleAnalyze = async () => {
+    const valid = urls.map((u) => u.trim()).filter((u) => u.length > 0);
     if (valid.length < 2) {
       alert("Please enter at least 2 URLs");
       return;
     }
-    setAnalyzing(true);
-    // Analysis logic comes in next batch
-    setTimeout(() => {
-      alert("Scaffold working! Real analysis coming in next batch.");
-      setAnalyzing(false);
-    }, 500);
+
+    setRunning(true);
+    setResults(valid.map(() => null));
+    setLoading(valid.map(() => true));
+
+    valid.forEach(async (url, i) => {
+      try {
+        const res = await fetch("/api/analyze", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ url }),
+        });
+        const data: SeoData = await res.json();
+        setResults((prev) => {
+          const next = [...prev];
+          next[i] = data;
+          return next;
+        });
+      } catch (e: any) {
+        setResults((prev) => {
+          const next = [...prev];
+          next[i] = { url, status: null, error: e.message };
+          return next;
+        });
+      } finally {
+        setLoading((prev) => {
+          const next = [...prev];
+          next[i] = false;
+          return next;
+        });
+      }
+    });
+
+    setRunning(false);
   };
 
   return (
     <main className="min-h-screen bg-gray-50">
-      <div className="max-w-7xl mx-auto px-4 py-8">
+      <div className="max-w-[1600px] mx-auto px-4 py-8">
         <header className="mb-8">
           <h1 className="text-3xl font-bold text-gray-900">
             SEO Pro Comparison
@@ -38,14 +70,20 @@ export default function Home() {
           <UrlInput urls={urls} setUrls={setUrls} />
           <button
             onClick={handleAnalyze}
-            disabled={analyzing}
+            disabled={running}
             className="mt-4 px-6 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 disabled:bg-gray-400 transition"
           >
-            {analyzing ? "Analyzing..." : "Compare"}
+            {running ? "Analyzing..." : "Compare"}
           </button>
         </div>
 
-        <p className="text-xs text-gray-500">v1 — scaffold</p>
+        {results.length > 0 && (
+          <ComparisonTable results={results} loading={loading} />
+        )}
+
+        <p className="text-xs text-gray-500 mt-4">
+          v1 — page-level SEO + body content extraction. CWV + first-published from Wayback coming next.
+        </p>
       </div>
     </main>
   );

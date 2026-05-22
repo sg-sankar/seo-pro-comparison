@@ -97,6 +97,27 @@ function CellSocial({
   );
 }
 
+function CellCwv({ d }: { d: SeoData }) {
+  const c = d.cwv;
+  if (!c) return <span className="text-gray-400 italic">loading...</span>;
+  const fmt = (v?: number, unit = "ms") =>
+    v === undefined ? "—" : `${v}${unit}`;
+  return (
+    <div className="text-xs space-y-0.5">
+      <div>
+        <span className="font-medium">Perf:</span>{" "}
+        {c.performanceScore !== undefined ? `${c.performanceScore}/100` : "—"}
+      </div>
+      <div><span className="font-medium">LCP:</span> {fmt(c.lcp)}</div>
+      <div><span className="font-medium">CLS:</span> {c.cls ?? "—"}</div>
+      <div><span className="font-medium">INP:</span> {fmt(c.inp)}</div>
+      <div><span className="font-medium">FCP:</span> {fmt(c.fcp)}</div>
+      <div><span className="font-medium">TTFB:</span> {fmt(c.ttfb)}</div>
+      <div className="text-gray-400 text-[10px]">{c.source}</div>
+    </div>
+  );
+}
+
 const ROWS: { label: string; render: (d: SeoData) => React.ReactNode }[] = [
   { label: "URL", render: (d) => <CellText value={d.url} /> },
   { label: "HTTP Status", render: (d) => <CellText value={d.status ?? "—"} /> },
@@ -108,25 +129,33 @@ const ROWS: { label: string; render: (d: SeoData) => React.ReactNode }[] = [
   { label: "Viewport", render: (d) => <CellText value={d.viewport} /> },
   { label: "Lang", render: (d) => <CellText value={d.lang} /> },
   { label: "Schema Types", render: (d) => <CellList items={d.schemaTypes} /> },
-  { label: "Date Published (page)", render: (d) => <CellText value={d.datePublished} /> },
+  {
+    label: "First Published",
+    render: (d) =>
+      d.firstPublished ? (
+        <span>
+          {d.firstPublished}
+          <span className="block text-gray-400 text-[10px]">
+            {d.firstPublishedSource}
+          </span>
+        </span>
+      ) : (
+        <CellText value={d.datePublished} />
+      ),
+  },
   { label: "Date Modified (page)", render: (d) => <CellText value={d.dateModified} /> },
   { label: "Last-Modified Header", render: (d) => <CellText value={d.lastModifiedHeader} /> },
   { label: "Word Count", render: (d) => <CellText value={d.wordCount} /> },
   { label: "Rendering", render: (d) => <CellText value={d.renderingType} /> },
+  { label: "Core Web Vitals", render: (d) => <CellCwv d={d} /> },
   { label: "HTML Size (KB)", render: (d) => <CellText value={d.htmlSizeKb} /> },
   { label: "H1", render: (d) => <CellText value={d.h1?.join(", ")} /> },
   {
     label: "Heading Tree",
     render: (d) => <HeadingTree nodes={d.headingTree || []} />,
   },
-  {
-    label: "Internal Links",
-    render: (d) => <CellLinks links={d.internalLinks} />,
-  },
-  {
-    label: "External Links",
-    render: (d) => <CellLinks links={d.externalLinks} />,
-  },
+  { label: "Internal Links", render: (d) => <CellLinks links={d.internalLinks} /> },
+  { label: "External Links", render: (d) => <CellLinks links={d.externalLinks} /> },
   { label: "Social Links", render: (d) => <CellSocial links={d.socialLinks} /> },
   { label: "Images", render: (d) => <CellImages images={d.images} /> },
 ];

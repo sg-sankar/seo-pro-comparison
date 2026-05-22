@@ -62,28 +62,21 @@ export default function Home() {
       }
 
       // 2. First published — schema/meta first, Wayback fallback (client-side)
-      setResults((prev) => {
-        const cur = prev[i];
-        if (cur && cur.datePublished) {
-          const next = [...prev];
-          next[i] = {
-            ...cur,
-            firstPublished: cur.datePublished.slice(0, 10),
-            firstPublishedSource: "Schema/meta (datePublished)",
-          };
-          return next;
-        }
-        return prev;
-      });
-      // Only hit Wayback if no on-page date
-      setResults((prev) => prev); // ensure latest state read
-      const curHasDate = await new Promise<boolean>((resolve) => {
+      let publishedDate: string | undefined;
+      await new Promise<void>((resolve) => {
         setResults((prev) => {
-          resolve(Boolean(prev[i]?.datePublished));
+          publishedDate = prev[i]?.datePublished;
           return prev;
         });
+        resolve();
       });
-      if (!curHasDate) {
+
+      if (publishedDate) {
+        updateResult(i, {
+          firstPublished: publishedDate.slice(0, 10),
+          firstPublishedSource: "Schema/meta (datePublished)",
+        });
+      } else {
         const wb = await fetchFirstPublished(url);
         updateResult(i, {
           firstPublished: wb.date,
